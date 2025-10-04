@@ -19,7 +19,6 @@ namespace DMTAssetManagement.Controllers
         // --- RETRIEVAL APIs ---
 
         // 1. Get Asset details 
-        // SP: Asset Management_GetAssetDataByMasterID. Parameter: @InstanceID [cite: 30]
         [HttpGet("{instanceId}")]
         public async Task<ActionResult<Asset>> GetAssetDetails(string instanceId)
         {
@@ -29,22 +28,27 @@ namespace DMTAssetManagement.Controllers
         }
         
         // 2. Get Attachment Path 
-        // SP: AssetManagement_GetAttachmentPathByMasterID. Parameters: @MasterID, @InstanceID [cite: 124, 125, 126]
+        // FIX: Uses [FromQuery] and adds parameter validation.
         [HttpGet("attachmentpath")]
-        public async Task<IActionResult> GetAttachmentPath(string masterId, string instanceId)
+        public async Task<IActionResult> GetAttachmentPath([FromQuery] string masterId, [FromQuery] string instanceId)
         {
+            if (string.IsNullOrEmpty(masterId) || string.IsNullOrEmpty(instanceId))
+            {
+                // Returns 400 Bad Request if mandatory query parameters are missing
+                return BadRequest("Missing MasterID or InstanceID query parameter.");
+            }
+
             var dataTable = await _assetRepository.GetAttachmentPathAsync(masterId, instanceId);
 
             if (dataTable == null || dataTable.Rows.Count == 0)
             {
-                return NotFound($"Attachment path not found.");
+                return NotFound($"Attachment path not found for MasterID: {masterId}, InstanceID: {instanceId}");
             }
             
             return Ok(dataTable); 
         }
 
         // 3. Get Asset Master ID 
-        // SP: Asset Management_GetAssetMasterID. Parameters: @MasterID, @InstanceID [cite: 143, 144, 145]
         [HttpGet("masterid/{masterId}/{instanceId}")]
         public async Task<IActionResult> GetAssetMasterID(string masterId, string instanceId)
         {
@@ -61,7 +65,6 @@ namespace DMTAssetManagement.Controllers
         // --- UPDATE APIs ---
 
         // 4. Update Asset Data (General Approval/Reject) 
-        // SP: AssetManagement_UpdateAssetData. Parameters from AssetUpdate model[cite: 14].
         [HttpPut("approval/general")]
         public async Task<IActionResult> UpdateAssetGeneral([FromBody] AssetUpdate model)
         {
@@ -78,7 +81,6 @@ namespace DMTAssetManagement.Controllers
         }
 
         // 5. Update Status on Inward (Inward Approval/Reject) 
-        // SP: AssetManagement_UpdateStatusOnInward. Parameters from AssetUpdate model[cite: 16].
         [HttpPut("approval/inward")]
         public async Task<IActionResult> UpdateAssetInward([FromBody] AssetUpdate model)
         {
@@ -95,9 +97,8 @@ namespace DMTAssetManagement.Controllers
         }
 
         // 6. Update Attachment Details (Metadata) 
-        // SP: AssetManagement_updateAttachmentDetailsByWF. Parameters: @MasterID, @InstanceID, @FileName, @FilePath [cite: 12]
         [HttpPost("attachment/metadata")]
-        public async Task<IActionResult> UpdateAttachmentMetadata(string masterId, string instanceId, string fileName, string filePath)
+        public async Task<IActionResult> UpdateAttachmentMetadata([FromQuery] string masterId, [FromQuery] string instanceId, [FromQuery] string fileName, [FromQuery] string filePath)
         {
             if (string.IsNullOrEmpty(masterId) || string.IsNullOrEmpty(instanceId) || string.IsNullOrEmpty(fileName))
             {
@@ -114,7 +115,7 @@ namespace DMTAssetManagement.Controllers
             return BadRequest("Failed to update attachment metadata.");
         }
         
-       
+        
         [HttpPost("attachment/uploadfile")]
         public async Task<IActionResult> UploadAttachmentFile([FromForm] FileUploadModel model) 
         {
@@ -127,7 +128,7 @@ namespace DMTAssetManagement.Controllers
             {
                 return BadRequest("Missing MasterId or InstanceId in form data.");
             }
-
+            
             return Ok(new { Message = $"File {model.File.FileName} received. Metadata must be updated separately using the /attachment/metadata endpoint." });
         }
     }

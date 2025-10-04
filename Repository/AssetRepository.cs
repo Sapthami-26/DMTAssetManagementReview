@@ -19,7 +19,7 @@ namespace DMTAssetManagement.Repositories
 
         public async Task<Asset> GetAssetDetailsByInstanceIDAsync(string instanceID)
         {
-            const string storedProcedure = "Asset Management_GetAssetDataByMasterID";
+            const string storedProcedure = "AssetManagement_GetAssetDataByMasterID";
 
             using IDbConnection connection = new SqlConnection(_connectionString);
             var parameters = new DynamicParameters();
@@ -31,37 +31,49 @@ namespace DMTAssetManagement.Repositories
                 commandType: CommandType.StoredProcedure
             );
 
-            if (asset == null)
-            {
-                throw new InvalidOperationException($"Asset not found for InstanceID: {instanceID}");
-            }
-            return asset;
+            return asset; 
         }
         
+        // FIX: Implemented correct ADO.NET logic to populate and return DataTable.
         public async Task<DataTable> GetAttachmentPathAsync(string masterID, string instanceID)
         {
             const string storedProcedure = "AssetManagement_GetAttachmentPathByMasterID";
+            var dataTable = new DataTable();
 
-            using IDbConnection connection = new SqlConnection(_connectionString);
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(storedProcedure, connection);
             
-            var parameters = new DynamicParameters();
-            parameters.Add("@MasterID", masterID, DbType.String, ParameterDirection.Input);
-            parameters.Add("@InstanceID", instanceID, DbType.String, ParameterDirection.Input);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@MasterID", masterID);
+            command.Parameters.AddWithValue("@InstanceID", instanceID);
+
+            await connection.OpenAsync();
             
-            await connection.QueryAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable); 
             
-            return new DataTable(); 
+            return dataTable;
         }
 
+        // FIX: Implemented correct ADO.NET logic to populate and return DataTable.
         public async Task<DataTable> GetAssetMasterIDAsync(string masterID, string instanceID)
         {
-            const string storedProcedure = "Asset Management_GetAssetMasterID";
-            using IDbConnection connection = new SqlConnection(_connectionString);
-            var parameters = new DynamicParameters();
-            parameters.Add("@MasterID", masterID, DbType.String, ParameterDirection.Input);
-            parameters.Add("@InstanceID", instanceID, DbType.String, ParameterDirection.Input);
-            await connection.QueryAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
-            return new DataTable(); 
+            const string storedProcedure = "AssetManagement_GetAssetMasterID";
+            var dataTable = new DataTable();
+
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(storedProcedure, connection);
+            
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@MasterID", masterID);
+            command.Parameters.AddWithValue("@InstanceID", instanceID);
+
+            await connection.OpenAsync();
+            
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable); 
+            
+            return dataTable;
         }
 
 

@@ -1,19 +1,19 @@
-using DMTAssetManagement.Repositories;
+using AssetManagementApi.Repository;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. Add services to the container. ---
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<IAssetRepository, AssetRepository>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure Dependency Injection for the Repository
-builder.Services.AddScoped<IAssetRepository, AssetRepository>();
-
-// --- 2. Build the application ---
 var app = builder.Build();
 
-// --- 3. Configure the HTTP request pipeline. ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -22,9 +22,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseAuthorization();
 
-// Map the controllers
 app.MapControllers();
 
 app.Run();

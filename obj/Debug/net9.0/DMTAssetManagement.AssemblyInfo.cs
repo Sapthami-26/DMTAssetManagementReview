@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DMTAssetManagement")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ad95ab8c7936e6af14ee6df75243fc6f5dc5e14")]
 [assembly: System.Reflection.AssemblyProductAttribute("DMTAssetManagement")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DMTAssetManagement")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
