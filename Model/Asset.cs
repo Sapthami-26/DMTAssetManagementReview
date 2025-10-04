@@ -30,19 +30,22 @@ namespace DMTAssetManagement.Models
 
     public class AssetUpdate
     {
-        public string? MasterID { get; set; }
-        public string? InstanceID { get; set; }
+        // CHANGED to int and added required SP parameters
+        public int MasterID { get; set; }
+        public int InstanceID { get; set; } 
         public bool PhysicalVerification { get; set; } 
         public bool PhysicalVerificationApp { get; set; }
         public int Status { get; set; } 
         public string? Comments { get; set; }
+        public int RID { get; set; }
+        public int AMTID { get; set; }
     }
     
-    // DTO required for file upload endpoint
     public class FileUploadModel 
     {
         public IFormFile? File { get; set; }
-        public string? MasterId { get; set; }
-        public string? InstanceId { get; set; }
+        // Changed to int for consistency with AssetUpdate
+        public int MasterId { get; set; }
+        public int InstanceId { get; set; }
     }
 }

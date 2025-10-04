@@ -28,7 +28,6 @@ namespace DMTAssetManagement.Controllers
         }
         
         // 2. Get Attachment Path 
-        // FIX: The method now expects a List<Dictionary<string, object>> from the repository.
         [HttpGet("attachmentpath")]
         public async Task<IActionResult> GetAttachmentPath([FromQuery] string masterId, [FromQuery] string instanceId)
         {
@@ -39,18 +38,15 @@ namespace DMTAssetManagement.Controllers
 
             var dataList = await _assetRepository.GetAttachmentPathAsync(masterId, instanceId);
 
-            // Check if the list is empty (equivalent to the old dataTable.Rows.Count == 0)
             if (dataList == null || dataList.Count == 0)
             {
                 return NotFound($"Attachment path not found for MasterID: {masterId}, InstanceID: {instanceId}");
             }
             
-            // Return the serializable list (this fixes the 500 error)
             return Ok(dataList); 
         }
 
         // 3. Get Asset Master ID 
-        // FIX: The method now expects a List<Dictionary<string, object>> from the repository.
         [HttpGet("masterid/{masterId}/{instanceId}")]
         public async Task<IActionResult> GetAssetMasterID(string masterId, string instanceId)
         {
@@ -61,17 +57,17 @@ namespace DMTAssetManagement.Controllers
                 return NotFound($"Master ID data not found.");
             }
             
-            // Return the serializable list (this fixes the 500 error)
             return Ok(dataList); 
         }
 
-        // --- UPDATE APIs ---
+        // --- UPDATE APIs (FIXED) ---
 
         // 4. Update Asset Data (General Approval/Reject) 
         [HttpPut("approval/general")]
         public async Task<IActionResult> UpdateAssetGeneral([FromBody] AssetUpdate model)
         {
-            if (model == null || string.IsNullOrEmpty(model.MasterID)) return BadRequest("Invalid approval data.");
+            // FIX: Check MasterID against 0 since it is now an int.
+            if (model == null || model.MasterID == 0) return BadRequest("Invalid approval data (MasterID missing or zero).");
             
             int rowsAffected = await _assetRepository.UpdateAssetDataAsync(model); 
 
@@ -87,7 +83,8 @@ namespace DMTAssetManagement.Controllers
         [HttpPut("approval/inward")]
         public async Task<IActionResult> UpdateAssetInward([FromBody] AssetUpdate model)
         {
-            if (model == null || string.IsNullOrEmpty(model.MasterID)) return BadRequest("Invalid approval data.");
+            // FIX: Check MasterID against 0 since it is now an int.
+            if (model == null || model.MasterID == 0) return BadRequest("Invalid approval data (MasterID missing or zero).");
             
             int rowsAffected = await _assetRepository.UpdateStatusOnInwardAsync(model); 
 
@@ -103,6 +100,7 @@ namespace DMTAssetManagement.Controllers
         [HttpPost("attachment/metadata")]
         public async Task<IActionResult> UpdateAttachmentMetadata([FromQuery] string masterId, [FromQuery] string instanceId, [FromQuery] string fileName, [FromQuery] string filePath)
         {
+            // Validation for string parameters
             if (string.IsNullOrEmpty(masterId) || string.IsNullOrEmpty(instanceId) || string.IsNullOrEmpty(fileName))
             {
                 return BadRequest("Missing required parameters for attachment metadata update.");
@@ -127,9 +125,10 @@ namespace DMTAssetManagement.Controllers
                 return BadRequest("No file uploaded or missing form data.");
             }
             
-            if (string.IsNullOrEmpty(model.MasterId) || string.IsNullOrEmpty(model.InstanceId))
+            // FIX: Check MasterId/InstanceId against 0 since they are now int.
+            if (model.MasterId == 0 || model.InstanceId == 0)
             {
-                return BadRequest("Missing MasterId or InstanceId in form data.");
+                return BadRequest("Missing MasterId or InstanceId in form data (must be greater than 0).");
             }
             
             return Ok(new { Message = $"File {model.File.FileName} received. Metadata must be updated separately using the /attachment/metadata endpoint." });

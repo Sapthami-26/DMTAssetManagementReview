@@ -8,10 +8,9 @@ namespace DMTAssetManagement.Repositories
         // Retrieval SPs
         Task<Asset> GetAssetDetailsByInstanceIDAsync(string instanceID);
         
-        // --- UPDATED RETURN TYPE ---
+        // Updated to use serializable List
         Task<List<Dictionary<string, object>>> GetAttachmentPathAsync(string masterID, string instanceID);
         Task<List<Dictionary<string, object>>> GetAssetMasterIDAsync(string masterID, string instanceID);
-        // ---------------------------
 
         // Update SPs
         Task<int> UpdateAssetDataAsync(AssetUpdate updateData);
