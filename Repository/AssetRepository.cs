@@ -14,6 +14,23 @@ namespace DMTAssetManagement.Repositories
             _connectionString = configuration.GetConnectionString("WFAppConnection") 
                                 ?? throw new InvalidOperationException("WFAppConnection string not found.");
         }
+        
+        // --- UTILITY METHOD FOR SERIALIZATION FIX ---
+        private List<Dictionary<string, object>> DataTableToDictionaryList(DataTable table)
+        {
+            var list = new List<Dictionary<string, object>>();
+            foreach (DataRow row in table.Rows)
+            {
+                var dict = new Dictionary<string, object>();
+                foreach (DataColumn col in table.Columns)
+                {
+                    // Handle DBNull values correctly
+                    dict.Add(col.ColumnName, row[col] == DBNull.Value ? null : row[col]);
+                }
+                list.Add(dict);
+            }
+            return list;
+        }
 
         // --- Retrieval Methods ---
 
@@ -34,8 +51,8 @@ namespace DMTAssetManagement.Repositories
             return asset; 
         }
         
-        // FIX: Implemented correct ADO.NET logic to populate and return DataTable.
-        public async Task<DataTable> GetAttachmentPathAsync(string masterID, string instanceID)
+        // FIX: Now returns a serializable List and uses SqlDataAdapter.
+        public async Task<List<Dictionary<string, object>>> GetAttachmentPathAsync(string masterID, string instanceID)
         {
             const string storedProcedure = "AssetManagement_GetAttachmentPathByMasterID";
             var dataTable = new DataTable();
@@ -52,11 +69,12 @@ namespace DMTAssetManagement.Repositories
             using var adapter = new SqlDataAdapter(command);
             adapter.Fill(dataTable); 
             
-            return dataTable;
+            // CONVERSION: Convert the DataTable to a serializable List before returning
+            return DataTableToDictionaryList(dataTable);
         }
 
-        // FIX: Implemented correct ADO.NET logic to populate and return DataTable.
-        public async Task<DataTable> GetAssetMasterIDAsync(string masterID, string instanceID)
+        // FIX: Now returns a serializable List and uses SqlDataAdapter.
+        public async Task<List<Dictionary<string, object>>> GetAssetMasterIDAsync(string masterID, string instanceID)
         {
             const string storedProcedure = "AssetManagement_GetAssetMasterID";
             var dataTable = new DataTable();
@@ -73,12 +91,12 @@ namespace DMTAssetManagement.Repositories
             using var adapter = new SqlDataAdapter(command);
             adapter.Fill(dataTable); 
             
-            return dataTable;
+            // CONVERSION: Convert the DataTable to a serializable List before returning
+            return DataTableToDictionaryList(dataTable);
         }
 
-
         // --- Update Methods ---
-
+        // (These remain correct)
         public async Task<int> UpdateAssetDataAsync(AssetUpdate updateData)
         {
             const string storedProcedure = "AssetManagement_UpdateAssetData";

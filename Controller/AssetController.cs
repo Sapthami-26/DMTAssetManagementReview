@@ -28,38 +28,41 @@ namespace DMTAssetManagement.Controllers
         }
         
         // 2. Get Attachment Path 
-        // FIX: Uses [FromQuery] and adds parameter validation.
+        // FIX: The method now expects a List<Dictionary<string, object>> from the repository.
         [HttpGet("attachmentpath")]
         public async Task<IActionResult> GetAttachmentPath([FromQuery] string masterId, [FromQuery] string instanceId)
         {
             if (string.IsNullOrEmpty(masterId) || string.IsNullOrEmpty(instanceId))
             {
-                // Returns 400 Bad Request if mandatory query parameters are missing
                 return BadRequest("Missing MasterID or InstanceID query parameter.");
             }
 
-            var dataTable = await _assetRepository.GetAttachmentPathAsync(masterId, instanceId);
+            var dataList = await _assetRepository.GetAttachmentPathAsync(masterId, instanceId);
 
-            if (dataTable == null || dataTable.Rows.Count == 0)
+            // Check if the list is empty (equivalent to the old dataTable.Rows.Count == 0)
+            if (dataList == null || dataList.Count == 0)
             {
                 return NotFound($"Attachment path not found for MasterID: {masterId}, InstanceID: {instanceId}");
             }
             
-            return Ok(dataTable); 
+            // Return the serializable list (this fixes the 500 error)
+            return Ok(dataList); 
         }
 
         // 3. Get Asset Master ID 
+        // FIX: The method now expects a List<Dictionary<string, object>> from the repository.
         [HttpGet("masterid/{masterId}/{instanceId}")]
         public async Task<IActionResult> GetAssetMasterID(string masterId, string instanceId)
         {
-            var dataTable = await _assetRepository.GetAssetMasterIDAsync(masterId, instanceId);
+            var dataList = await _assetRepository.GetAssetMasterIDAsync(masterId, instanceId);
 
-            if (dataTable == null || dataTable.Rows.Count == 0)
+            if (dataList == null || dataList.Count == 0)
             {
                 return NotFound($"Master ID data not found.");
             }
             
-            return Ok(dataTable); 
+            // Return the serializable list (this fixes the 500 error)
+            return Ok(dataList); 
         }
 
         // --- UPDATE APIs ---
